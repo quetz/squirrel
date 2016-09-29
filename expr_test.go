@@ -2,9 +2,27 @@ package squirrel
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+type Array []int
+
+func (a Array) Value() (driver.Value, error) {
+	return "{dummy value}", nil
+}
+
+func TestEqInToSql2(t *testing.T) {
+	b := Eq{"id": Array{1, 2, 3}}
+	sql, args, err := b.ToSql()
+	assert.NoError(t, err)
+	expectedSql := "id IN (?,?,?)"
+	assert.Equal(t, expectedSql, sql)
+
+	expectedArgs := []interface{}{1, 2, 3}
+	assert.Equal(t, expectedArgs, args)
+}
 
 func TestEqToSql(t *testing.T) {
 	b := Eq{"id": 1}
